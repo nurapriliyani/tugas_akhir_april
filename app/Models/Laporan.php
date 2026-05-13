@@ -9,7 +9,6 @@ class Laporan extends Model
 {
     use HasFactory;
 
-    // 🔥 FIELD YANG BOLEH DIISI (WAJIB LENGKAP)
     protected $fillable = [
         'user_id',
         'jenis_kasus',
@@ -20,37 +19,34 @@ class Laporan extends Model
         'bukti',
         'no_hp',
         'anonim',
-        'status',
+        'status', // Sudah benar masuk fillable
     ];
 
-    // 🔥 CASTING DATA
     protected $casts = [
         'anonim' => 'boolean',
         'tanggal_kejadian' => 'date',
     ];
 
-    // 🔥 RELASI KE USER
+    /**
+     * Relasi ke model User
+     */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    // 🔥 STATUS LABEL (BIAR RAPI DI VIEW)
+    /**
+     * Accessor untuk label status agar tampilan lebih rapi
+     * REVISI: Tambahkan case 'ditolak'
+     */
     public function getStatusLabelAttribute()
     {
         return match ($this->status) {
             'menunggu' => 'Menunggu',
             'diproses' => 'Diproses',
-            'selesai' => 'Selesai',
-            default => 'Tidak diketahui',
+            'selesai'  => 'Selesai',
+            'ditolak'  => 'Ditolak', // <--- Tambahkan ini
+            default    => 'Tidak diketahui',
         };
-    }
-
-    // 🔥 (BONUS) FORMAT TANGGAL BIAR RAPI
-    public function getTanggalFormattedAttribute()
-    {
-        return $this->tanggal_kejadian
-            ? $this->tanggal_kejadian->format('d M Y')
-            : '-';
     }
 }

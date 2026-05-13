@@ -2,36 +2,138 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Laporan;
+use App\Models\User;
+use App\Models\Kegiatan;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LaporanController extends Controller
 {
-    // FORM
+    /*
+    |--------------------------------------------------------------------------
+    | 👑 ADMIN SECTION
+    |--------------------------------------------------------------------------
+    */
+
+    public function adminDashboard()
+    {
+        // Mengambil statistik global untuk seluruh sistem
+        $totalLaporan = Laporan::count();
+        $totalMenunggu = Laporan::where('status', 'menunggu')->count();
+        $totalSelesai = Laporan::where('status', 'selesai')->count();
+        $totalUser = User::count();
+        $totalKegiatan = Kegiatan::count();
+
+        // Mengarahkan ke file view khusus admin agar tampilan tidak tertukar
+        return view('admin.dashboard', compact(
+            'totalLaporan', 
+            'totalMenunggu', 
+            'totalSelesai', 
+            'totalUser',
+            'totalKegiatan'
+        ));
+    }
+
+    public function adminIndex()
+    {
+        $laporan = Laporan::with('user')->latest()->get();
+        return view('admin.laporan.index', compact('laporan'));
+    }
+
+    public function adminShow(Laporan $laporan)
+    {
+        $laporan->load('user');
+        return view('admin.laporan.show', compact('laporan'));
+    }
+
+    public function adminCreate()
+    {
+        $users = User::all();
+        return view('admin.laporan.create', compact('users'));
+    }
+
+    public function adminStore(Request $request)
+    {
+        $request->validate([
+            'user_id'     => 'required|exists:users,id',
+            'jenis_kasus' => 'required|string',
+            'kronologi'   => 'required|string',
+            'status'      => 'required|in:menunggu,diproses,selesai,ditolak',
+        ]);
+
+        Laporan::create([
+            'user_id'     => $request->user_id,
+            'jenis_kasus' => $request->jenis_kasus,
+            'kategori'    => $request->kategori,
+            'lokasi'      => $request->lokasi,
+            'kronologi'   => $request->kronologi,
+            'no_hp'       => $request->no_hp,
+            'status'      => $request->status,
+            'anonim'      => false,
+        ]);
+
+        return redirect()->route('admin.laporan.index')->with('success', 'Laporan berhasil ditambahkan');
+    }
+
+    public function adminEdit(Laporan $laporan)
+    {
+        return view('admin.laporan.edit', compact('laporan'));
+    }
+
+    public function adminUpdate(Request $request, Laporan $laporan)
+    {
+        $request->validate([
+            'jenis_kasus' => 'required|string',
+            'kronologi'   => 'required|string',
+            'status'      => 'required|in:menunggu,diproses,selesai,ditolak',
+        ]);
+
+        $laporan->update($request->only(['jenis_kasus', 'kategori', 'lokasi', 'kronologi', 'no_hp', 'status']));
+
+        return redirect()->route('admin.laporan.index')->with('success', 'Laporan berhasil diperbarui');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 👤 USER (PELAPOR) SECTION
+    |--------------------------------------------------------------------------
+    */
+
+    public function userDashboard()
+    {
+        $user = Auth::user();
+        
+        // Statistik hanya milik user yang login
+        $totalLaporan = Laporan::where('user_id', $user->id)->count();
+        $totalMenunggu = Laporan::where('user_id', $user->id)->where('status', 'menunggu')->count();
+        $totalSelesai = Laporan::where('user_id', $user->id)->where('status', 'selesai')->count();
+        
+        $kegiatans = Kegiatan::where('status', 'aktif')->latest()->take(3)->get();
+
+        return view('dashboard', compact('totalLaporan', 'totalMenunggu', 'totalSelesai', 'kegiatans'));
+    }
+
+    public function laporanIndex()
+    {
+        $laporans = Laporan::where('user_id', Auth::id())->latest()->get();
+        return view('laporan.index', compact('laporans'));
+    }
+
     public function create()
     {
         return view('laporan.create');
     }
 
-    // SIMPAN
     public function store(Request $request)
     {
         $request->validate([
-            'jenis_kasus'       => 'required|string',
-            'kategori'          => 'nullable|string',
-            'tanggal_kejadian'  => 'nullable|date',
-            'lokasi'            => 'nullable|string',
-            'kronologi'         => 'required|string',
-            'bukti'             => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'no_hp'             => 'nullable|string',
+            'jenis_kasus'      => 'required|string',
+            'kronologi'        => 'required|string',
+            'bukti'            => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // upload bukti
-        $buktiPath = null;
-        if ($request->hasFile('bukti')) {
-            $buktiPath = $request->file('bukti')->store('bukti', 'public');
-        }
+        $buktiPath = $request->hasFile('bukti') ? $request->file('bukti')->store('bukti', 'public') : null;
 
         Laporan::create([
             'user_id'          => Auth::id(),
@@ -46,26 +148,14 @@ class LaporanController extends Controller
             'status'           => 'menunggu',
         ]);
 
-        return redirect()->route('dashboard')
-            ->with('success', 'Laporan berhasil dikirim!');
+        return redirect()->route('laporan.index')->with('success', 'Laporan berhasil dikirim!');
     }
 
-    // RIWAYAT
-    public function index()
+    public function show(Laporan $laporan)
     {
-        $laporans = Laporan::where('user_id', Auth::id())
-            ->latest()
-            ->get();
-
-        return view('laporan.index', compact('laporans'));
-    }
-
-    public function show($id)
-    {
-        $laporan = Laporan::where('id', $id)
-            ->where('user_id', Auth::id()) // biar aman
-            ->firstOrFail();
-
+        if ($laporan->user_id !== Auth::id()) {
+            abort(403);
+        }
         return view('laporan.show', compact('laporan'));
     }
 }

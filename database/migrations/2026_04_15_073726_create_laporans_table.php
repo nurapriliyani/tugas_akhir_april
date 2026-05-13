@@ -6,11 +6,15 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('laporans', function (Blueprint $table) {
             $table->id();
 
+            // Relasi ke tabel users
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
 
             $table->string('jenis_kasus');
@@ -25,13 +29,17 @@ return new class extends Migration
 
             $table->boolean('anonim')->default(false);
 
-            $table->enum('status', ['menunggu', 'diproses', 'selesai'])
+            // REVISI: Menambahkan 'ditolak' ke dalam daftar enum
+            $table->enum('status', ['menunggu', 'diproses', 'selesai', 'ditolak'])
                   ->default('menunggu');
 
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('laporans');
