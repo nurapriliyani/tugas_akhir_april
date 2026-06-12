@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Kegiatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LaporanController extends Controller
 {
@@ -18,20 +19,20 @@ class LaporanController extends Controller
 
     public function adminDashboard()
     {
-        // Mengambil statistik global untuk seluruh sistem
-        $totalLaporan = Laporan::count();
-        $totalMenunggu = Laporan::where('status', 'menunggu')->count();
-        $totalSelesai = Laporan::where('status', 'selesai')->count();
-        $totalUser = User::count();
-        $totalKegiatan = Kegiatan::count();
+        $totalLaporan   = Laporan::count();
+        $totalMenunggu  = Laporan::where('status', 'menunggu')->count();
+        $totalSelesai   = Laporan::where('status', 'selesai')->count();
+        $totalUser      = User::count();
+        $totalKegiatan  = Kegiatan::count();
+        $laporanTerbaru = Laporan::with('user')->latest()->take(5)->get();
 
-        // Mengarahkan ke file view khusus admin agar tampilan tidak tertukar
         return view('admin.dashboard', compact(
-            'totalLaporan', 
-            'totalMenunggu', 
-            'totalSelesai', 
+            'totalLaporan',
+            'totalMenunggu',
+            'totalSelesai',
             'totalUser',
-            'totalKegiatan'
+            'totalKegiatan',
+            'laporanTerbaru'
         ));
     }
 
@@ -39,6 +40,31 @@ class LaporanController extends Controller
     {
         $laporan = Laporan::with('user')->latest()->get();
         return view('admin.laporan.index', compact('laporan'));
+    }
+
+    // Export PDF semua laporan (admin)
+    public function exportPdf()
+    {
+        $laporans = Laporan::with('user')->latest()->get();
+
+        $pdf = Pdf::loadView('admin.laporan.pdf', compact('laporans'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->download('laporan-selendang-puan-' . now()->format('d-m-Y') . '.pdf');
+    }
+
+    // Export PDF laporan milik user sendiri
+    public function exportUserPdf()
+    {
+        $user     = Auth::user();
+        $laporans = Laporan::where('user_id', $user->id)->latest()->get();
+
+        $pdf = Pdf::loadView('laporan.pdf', [
+            'laporans' => $laporans,
+            'user'     => $user,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->download('laporan-saya-' . now()->format('d-m-Y') . '.pdf');
     }
 
     public function adminShow(Laporan $laporan)
@@ -73,7 +99,8 @@ class LaporanController extends Controller
             'anonim'      => false,
         ]);
 
-        return redirect()->route('admin.laporan.index')->with('success', 'Laporan berhasil ditambahkan');
+        return redirect()->route('admin.laporan.index')
+            ->with('success', 'Laporan berhasil ditambahkan');
     }
 
     public function adminEdit(Laporan $laporan)
@@ -89,29 +116,38 @@ class LaporanController extends Controller
             'status'      => 'required|in:menunggu,diproses,selesai,ditolak',
         ]);
 
-        $laporan->update($request->only(['jenis_kasus', 'kategori', 'lokasi', 'kronologi', 'no_hp', 'status']));
+        $laporan->update($request->only([
+            'jenis_kasus', 'kategori', 'lokasi',
+            'kronologi', 'no_hp', 'status'
+        ]));
 
-        return redirect()->route('admin.laporan.index')->with('success', 'Laporan berhasil diperbarui');
+        return redirect()->route('admin.laporan.index')
+            ->with('success', 'Laporan berhasil diperbarui');
     }
 
     /*
     |--------------------------------------------------------------------------
-    | 👤 USER (PELAPOR) SECTION
+    | 👤 USER SECTION
     |--------------------------------------------------------------------------
     */
 
     public function userDashboard()
     {
         $user = Auth::user();
-        
-        // Statistik hanya milik user yang login
-        $totalLaporan = Laporan::where('user_id', $user->id)->count();
-        $totalMenunggu = Laporan::where('user_id', $user->id)->where('status', 'menunggu')->count();
-        $totalSelesai = Laporan::where('user_id', $user->id)->where('status', 'selesai')->count();
-        
-        $kegiatans = Kegiatan::where('status', 'aktif')->latest()->take(3)->get();
 
-        return view('dashboard', compact('totalLaporan', 'totalMenunggu', 'totalSelesai', 'kegiatans'));
+        $totalLaporan   = Laporan::where('user_id', $user->id)->count();
+        $totalMenunggu  = Laporan::where('user_id', $user->id)->where('status', 'menunggu')->count();
+        $totalSelesai   = Laporan::where('user_id', $user->id)->where('status', 'selesai')->count();
+        $kegiatans      = Kegiatan::where('status', 'aktif')->orderBy('tanggal')->take(3)->get();
+        $laporanTerbaru = Laporan::where('user_id', $user->id)->latest()->take(3)->get();
+
+        return view('dashboard', compact(
+            'totalLaporan',
+            'totalMenunggu',
+            'totalSelesai',
+            'kegiatans',
+            'laporanTerbaru'
+        ));
     }
 
     public function laporanIndex()
@@ -128,12 +164,14 @@ class LaporanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'jenis_kasus'      => 'required|string',
-            'kronologi'        => 'required|string',
-            'bukti'            => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'jenis_kasus' => 'required|string',
+            'kronologi'   => 'required|string',
+            'bukti'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $buktiPath = $request->hasFile('bukti') ? $request->file('bukti')->store('bukti', 'public') : null;
+        $buktiPath = $request->hasFile('bukti')
+            ? $request->file('bukti')->store('bukti', 'public')
+            : null;
 
         Laporan::create([
             'user_id'          => Auth::id(),
@@ -148,7 +186,8 @@ class LaporanController extends Controller
             'status'           => 'menunggu',
         ]);
 
-        return redirect()->route('laporan.index')->with('success', 'Laporan berhasil dikirim!');
+        return redirect()->route('laporan.index')
+            ->with('success', 'Laporan berhasil dikirim!');
     }
 
     public function show(Laporan $laporan)

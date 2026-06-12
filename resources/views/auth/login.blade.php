@@ -1,92 +1,105 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+<x-guest-layout>
+<style>
+*{box-sizing:border-box;}
+.form-title{font-family:'DM Serif Display',serif;font-size:24px;color:#2c2416;margin:0 0 5px;letter-spacing:-0.3px;}
+.form-sub{font-size:13px;color:#9e8e78;margin:0 0 26px;line-height:1.6;}
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+.field-group{margin-bottom:14px;}
+.field-label{display:block;font-size:10px;font-weight:700;color:#8a7a60;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px;}
+.field-input{
+    width:100%;padding:11px 14px;
+    background:#fff;border:1.5px solid #e0d8cc;
+    border-radius:8px;font-size:13px;color:#2c2416;
+    font-family:'DM Sans',sans-serif;outline:none;
+    transition:border-color 0.15s;
+}
+.field-input:focus{border-color:#6b8c52;background:#fff;}
+.field-input::placeholder{color:#c0b09c;}
+.error-msg{font-size:11px;color:#b04040;margin-top:5px;display:block;}
 
-<div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
+.alert-error{
+    background:#fdf2f2;border:1px solid #e8c8c8;
+    color:#8a4040;border-radius:8px;
+    padding:10px 14px;font-size:12px;
+    margin-bottom:16px;line-height:1.6;
+}
+.status-msg{
+    background:#edf2e8;border:1px solid #c8d9b0;
+    color:#4a6535;border-radius:8px;
+    padding:10px 14px;font-size:12px;margin-bottom:16px;
+}
 
-    <!-- TITLE -->
-    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
-        Login Akun
-    </h2>
+.remember-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.remember-label{display:flex;align-items:center;gap:7px;font-size:12px;color:#8a7a60;cursor:pointer;}
+.remember-label input[type=checkbox]{width:14px;height:14px;accent-color:#4a6535;cursor:pointer;}
+.forgot-link{font-size:12px;color:#6b8c52;font-weight:600;text-decoration:none;}
+.forgot-link:hover{color:#4a6535;}
 
-    <p class="text-center text-sm text-gray-500 mb-6">
-        Sistem Pelaporan Komunitas Selendang Puan Dharma Ayu
+.btn-submit{
+    width:100%;background:#2c3325;color:#c8d9b0;
+    font-size:13px;font-weight:600;border:none;
+    padding:12px;border-radius:8px;cursor:pointer;
+    letter-spacing:0.3px;transition:opacity 0.15s;
+    margin-bottom:16px;font-family:'DM Sans',sans-serif;
+}
+.btn-submit:hover{opacity:0.88;}
+
+.divider{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#e8e0d4;}
+.divider span{font-size:11px;color:#c0b09c;}
+
+.bottom-link{display:block;text-align:center;font-size:13px;color:#9e8e78;}
+.bottom-link a{color:#4a6535;font-weight:700;text-decoration:none;}
+.bottom-link a:hover{color:#2c3325;}
+</style>
+
+<h1 class="form-title">Masuk ke Akun</h1>
+<p class="form-sub">Selamat datang kembali. Masukkan kredensial Anda.</p>
+
+@if(session('status'))
+    <div class="status-msg">🌿 {{ session('status') }}</div>
+@endif
+
+@if($errors->any())
+    <div class="alert-error">
+        @foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach
+    </div>
+@endif
+
+<form method="POST" action="{{ route('login') }}">
+    @csrf
+
+    <div class="field-group">
+        <label class="field-label" for="email">Email</label>
+        <input id="email" type="email" name="email" value="{{ old('email') }}"
+            class="field-input" placeholder="contoh@email.com"
+            required autofocus autocomplete="username">
+        @error('email')<span class="error-msg">{{ $message }}</span>@enderror
+    </div>
+
+    <div class="field-group">
+        <label class="field-label" for="password">Password</label>
+        <input id="password" type="password" name="password"
+            class="field-input" placeholder="••••••••"
+            required autocomplete="current-password">
+        @error('password')<span class="error-msg">{{ $message }}</span>@enderror
+    </div>
+
+    <div class="remember-row">
+        <label class="remember-label">
+            <input type="checkbox" name="remember"> Ingat saya
+        </label>
+        @if(Route::has('password.request'))
+            <a href="{{ route('password.request') }}" class="forgot-link">Lupa password?</a>
+        @endif
+    </div>
+
+    <button type="submit" class="btn-submit">Masuk Sekarang</button>
+
+    <div class="divider"><span>atau</span></div>
+
+    <p class="bottom-link">
+        Belum punya akun? <a href="{{ route('register') }}">Daftar di sini</a>
     </p>
-
-    <!-- STATUS -->
-    @if (session('status'))
-        <div class="bg-green-100 text-green-600 p-3 rounded mb-4 text-sm">
-            {{ session('status') }}
-        </div>
-    @endif
-
-    <!-- ERROR -->
-    @if ($errors->any())
-        <div class="bg-red-100 text-red-600 p-3 rounded mb-4 text-sm">
-            <ul class="list-disc pl-5">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <!-- FORM -->
-    <form method="POST" action="{{ route('login') }}" class="space-y-4">
-        @csrf
-
-        <!-- Email -->
-        <div>
-            <label class="text-sm text-gray-600">Email</label>
-            <input type="email" name="email"
-                   value="{{ old('email') }}"
-                   class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                   placeholder="Masukkan email"
-                   required>
-        </div>
-
-        <!-- Password -->
-        <div>
-            <label class="text-sm text-gray-600">Password</label>
-            <input type="password" name="password"
-                   class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                   placeholder="Masukkan password"
-                   required>
-        </div>
-
-        <!-- Remember -->
-        <div class="flex items-center">
-            <input type="checkbox" name="remember"
-                   class="rounded border-gray-300 text-blue-600">
-
-            <label class="ml-2 text-sm text-gray-600">
-                Remember me
-            </label>
-        </div>
-
-        <!-- BUTTON -->
-        <button type="submit"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition">
-            Login
-        </button>
-
-    </form>
-
-    <!-- LINK -->
-    <p class="text-center text-sm text-gray-500 mt-6">
-        Belum punya akun?
-        <a href="{{ route('register') }}" class="text-blue-600 font-semibold">
-            Daftar di sini
-        </a>
-    </p>
-
-</div>
-
-</body>
-</html>
+</form>
+</x-guest-layout>

@@ -5,19 +5,17 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ChatbotController;
 
-/*
-|--------------------------------------------------------------------------
-| HOME & DASHBOARD REDIRECT
-|--------------------------------------------------------------------------
-*/
+
+// chatbot groq
+Route::post('/chatbot', [ChatbotController::class, 'reply'])->middleware('auth');
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Shortcut untuk mengarahkan user ke dashboard yang sesuai dengan role-nya
 Route::get('/dashboard', function () {
-    if (auth()->user()->role === 'admin') { 
+    if (auth()->user()->role === 'admin') {
         return redirect()->route('admin.dashboard');
     }
     return app(LaporanController::class)->userDashboard();
@@ -25,7 +23,7 @@ Route::get('/dashboard', function () {
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN ROUTES (Hanya untuk Role Admin)
+| ADMIN ROUTES
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])
@@ -33,11 +31,12 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])
     ->name('admin.')
     ->group(function () {
 
-    // Dashboard Utama Admin
     Route::get('/dashboard', [LaporanController::class, 'adminDashboard'])->name('dashboard');
 
-    // KELOLA USER (Lengkap: Index, Create, Store, Show, Edit, Update, Destroy)
     Route::prefix('users')->name('users.')->group(function () {
+        // ✅ Export HARUS paling atas sebelum wildcard /{user}
+        Route::get('/export/pdf', [UserController::class, 'exportPdf'])->name('export.pdf');
+
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('/create', [UserController::class, 'create'])->name('create');
         Route::post('/', [UserController::class, 'store'])->name('store');
@@ -47,8 +46,10 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
     });
 
-    // ADMIN LAPORAN (Kelola Semua Aduan Masuk)
     Route::prefix('laporan')->name('laporan.')->group(function () {
+        // ✅ Export HARUS paling atas
+        Route::get('/export/pdf', [LaporanController::class, 'exportPdf'])->name('export.pdf');
+
         Route::get('/', [LaporanController::class, 'adminIndex'])->name('index');
         Route::get('/create', [LaporanController::class, 'adminCreate'])->name('create');
         Route::post('/', [LaporanController::class, 'adminStore'])->name('store');
@@ -57,32 +58,35 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])
         Route::put('/{laporan}', [LaporanController::class, 'adminUpdate'])->name('update');
     });
 
-    // ADMIN KEGIATAN (Kelola Agenda Komunitas)
     Route::prefix('kegiatan')->name('kegiatan.')->group(function () {
+        // ✅ Export HARUS paling atas
+        Route::get('/export/pdf', [KegiatanController::class, 'exportPdf'])->name('export.pdf');
+
         Route::get('/', [KegiatanController::class, 'index'])->name('index');
         Route::get('/create', [KegiatanController::class, 'create'])->name('create');
         Route::post('/', [KegiatanController::class, 'store'])->name('store');
-        Route::get('/{id}', [KegiatanController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [KegiatanController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [KegiatanController::class, 'update'])->name('update');
-        Route::delete('/{id}', [KegiatanController::class, 'destroy'])->name('destroy');
+        Route::get('/{kegiatan}', [KegiatanController::class, 'show'])->name('show');
+        Route::get('/{kegiatan}/edit', [KegiatanController::class, 'edit'])->name('edit');
+        Route::put('/{kegiatan}', [KegiatanController::class, 'update'])->name('update');
+        Route::delete('/{kegiatan}', [KegiatanController::class, 'destroy'])->name('destroy');
     });
 });
 
 /*
 |--------------------------------------------------------------------------
-| USER ROUTES (Akses untuk User Biasa & Admin)
+| USER ROUTES
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
-    
-    // Profil Personal
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Laporan Pribadi (Hanya milik user yang login)
     Route::prefix('laporan')->name('laporan.')->group(function () {
+        // ✅ Export HARUS paling atas
+        Route::get('/export/pdf', [LaporanController::class, 'exportUserPdf'])->name('export.pdf');
+
         Route::get('/', [LaporanController::class, 'laporanIndex'])->name('index');
         Route::get('/create', [LaporanController::class, 'create'])->name('create');
         Route::post('/', [LaporanController::class, 'store'])->name('store');
