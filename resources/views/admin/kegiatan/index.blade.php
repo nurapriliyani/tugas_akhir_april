@@ -35,6 +35,7 @@ td{padding:12px 18px;vertical-align:middle;}
 .action-wrap{display:flex;justify-content:flex-end;gap:6px;}
 .btn-icon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;text-decoration:none;transition:all 0.15s;flex-shrink:0;}
 .btn-view{background:#edf2e8;color:#4a6535;}.btn-view:hover{background:#4a6535;color:#fff;}
+.btn-peserta{background:#e8eff2;color:#3576a8;}.btn-peserta:hover{background:#3576a8;color:#fff;}
 .btn-edit{background:#f5ede4;color:#b07040;}.btn-edit:hover{background:#b07040;color:#fff;}
 .btn-del{background:#fbeaea;color:#b04040;}.btn-del:hover{background:#b04040;color:#fff;}
 
@@ -104,6 +105,9 @@ td{padding:12px 18px;vertical-align:middle;}
                         <div class="action-wrap">
                             <a href="{{ route('admin.kegiatan.show', $item->id) }}" class="btn-icon btn-view" title="Detail">
                                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </a>
+                            <a href="{{ route('admin.kegiatan.peserta', $item->id) }}" class="btn-icon btn-peserta" title="Lihat Peserta">
+                                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-4a4 4 0 11-8 0 4 4 0 018 0zm6 0a4 4 0 11-8 0"/></svg>
                             </a>
                             <a href="{{ route('admin.kegiatan.edit', $item->id) }}" class="btn-icon btn-edit" title="Edit">
                                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>

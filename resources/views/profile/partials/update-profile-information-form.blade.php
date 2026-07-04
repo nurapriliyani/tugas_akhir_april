@@ -21,7 +21,7 @@
 
         @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
             <div class="verify-warn">
-                ⚠️ Email Anda belum terverifikasi.
+                Email Anda belum terverifikasi.
                 <button form="send-verification" class="verify-btn">Kirim ulang verifikasi</button>
             </div>
             @if (session('status') === 'verification-link-sent')

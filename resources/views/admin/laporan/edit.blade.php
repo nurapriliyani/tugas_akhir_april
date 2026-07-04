@@ -50,10 +50,10 @@ textarea.field-input{resize:vertical;min-height:130px;}
                 <div class="status-zone-label">Status Penanganan</div>
                 <h3>Tentukan status laporan ini</h3>
                 <select name="status" class="status-select">
-                    <option value="menunggu" {{ $laporan->status == 'menunggu' ? 'selected' : '' }}>🟡 Menunggu — Belum Diproses</option>
-                    <option value="diproses" {{ $laporan->status == 'diproses' ? 'selected' : '' }}>🔵 Diproses — Sedang Ditangani</option>
-                    <option value="selesai"  {{ $laporan->status == 'selesai'  ? 'selected' : '' }}>🟢 Selesai — Kasus Tuntas</option>
-                    <option value="ditolak"  {{ $laporan->status == 'ditolak'  ? 'selected' : '' }}>🔴 Ditolak — Laporan Ditolak</option>
+                    <option value="menunggu" {{ $laporan->status == 'menunggu' ? 'selected' : '' }}>Menunggu — Belum Diproses</option>
+                    <option value="diproses" {{ $laporan->status == 'diproses' ? 'selected' : '' }}>Diproses — Sedang Ditangani</option>
+                    <option value="selesai"  {{ $laporan->status == 'selesai'  ? 'selected' : '' }}>Selesai — Kasus Tuntas</option>
+                    <option value="ditolak"  {{ $laporan->status == 'ditolak'  ? 'selected' : '' }}>Ditolak — Laporan Ditolak</option>
                 </select>
             </div>
 

@@ -152,7 +152,7 @@
 {{-- SIDEBAR --}}
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-        <div class="logo-mark">S</div>
+        <img src="{{ asset('images/logo.JPG') }}" alt="Logo" style="width:38px;height:38px;border-radius:10px;object-fit:cover;">
         <div class="logo-name">Selendang Puan</div>
         <div class="logo-sub">Dharma Ayu</div>
     </div>

@@ -92,7 +92,7 @@
 <body>
     <div class="guest-left">
         <div class="brand-wrap">
-            <div class="brand-logo">S</div>
+            <img src="{{ asset('images/logo.JPG') }}" alt="Logo" style="width:38px;height:38px;border-radius:10px;object-fit:cover;">
             <div>
                 <div class="brand-name">Selendang Puan</div>
                 <div class="brand-sub">Dharma Ayu</div>

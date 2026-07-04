@@ -6,10 +6,12 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\PendaftaranKegiatanController;
 
 
 // chatbot groq
 Route::post('/chatbot', [ChatbotController::class, 'reply'])->middleware('auth');
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -69,6 +71,17 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])
         Route::get('/{kegiatan}/edit', [KegiatanController::class, 'edit'])->name('edit');
         Route::put('/{kegiatan}', [KegiatanController::class, 'update'])->name('update');
         Route::delete('/{kegiatan}', [KegiatanController::class, 'destroy'])->name('destroy');
+
+        /*
+        |--------------------------------------------------------------------------
+        | ADMIN - PESERTA KEGIATAN
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/{kegiatan}/peserta', [PendaftaranKegiatanController::class, 'adminIndex'])
+            ->name('peserta');
+
+        Route::get('/{kegiatan}/peserta/export', [PendaftaranKegiatanController::class, 'exportPdf'])
+            ->name('peserta.export');
     });
 });
 
@@ -92,6 +105,28 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [LaporanController::class, 'store'])->name('store');
         Route::get('/{laporan}', [LaporanController::class, 'show'])->name('show');
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | USER - PENDAFTARAN KEGIATAN
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/kegiatan/{kegiatan}/daftar', [PendaftaranKegiatanController::class, 'create'])
+        ->name('kegiatan.daftar');
+
+    Route::post('/kegiatan/{kegiatan}/daftar', [PendaftaranKegiatanController::class, 'store'])
+        ->name('kegiatan.daftar.store');
+
+    Route::get('/kegiatan/{kegiatan}/peserta/export', [KegiatanController::class, 'exportPesertaPdf'])
+    ->name('admin.kegiatan.peserta.export');
+
+    /*
+    |--------------------------------------------------------------------------
+    | USER - NOTIFIKASI
+    |--------------------------------------------------------------------------
+    */
+    Route::post('/notifikasi/{notifikasi}/baca', [LaporanController::class, 'bacaNotifikasi'])
+        ->name('notifikasi.baca');
 });
 
 require __DIR__.'/auth.php';

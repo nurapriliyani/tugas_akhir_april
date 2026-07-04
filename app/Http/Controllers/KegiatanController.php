@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -23,7 +22,9 @@ class KegiatanController extends Controller
         $pdf = Pdf::loadView('admin.kegiatan.pdf', compact('kegiatan'))
             ->setPaper('a4', 'landscape');
 
-        return $pdf->download('rekapitulasi-agenda-kegiatan-' . now()->format('Ymd') . '.pdf');
+        return $pdf->download(
+            'rekapitulasi-agenda-kegiatan-' . now()->format('Ymd') . '.pdf'
+        );
     }
 
     public function create()
@@ -34,11 +35,12 @@ class KegiatanController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'judul'     => 'required|string|max:255',
-            'tanggal'   => 'required|date',
-            'lokasi'    => 'required|string|max:255',
-            'deskripsi' => 'required|string',
-            'gambar'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'judul'       => 'required|string|max:255',
+            'tanggal'     => 'required|date',
+            'lokasi'      => 'required|string|max:255',
+            'deskripsi'   => 'required|string',
+            'wa_grup'     => 'nullable|url|max:255',
+            'gambar'      => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         if ($request->hasFile('gambar')) {
@@ -46,9 +48,11 @@ class KegiatanController extends Controller
         }
 
         $validated['status'] = 'aktif';
+
         Kegiatan::create($validated);
 
-        return redirect()->route('admin.kegiatan.index')
+        return redirect()
+            ->route('admin.kegiatan.index')
             ->with('success', 'Agenda berhasil ditambahkan!');
     }
 
@@ -65,24 +69,28 @@ class KegiatanController extends Controller
     public function update(Request $request, Kegiatan $kegiatan)
     {
         $validated = $request->validate([
-            'judul'     => 'required|string|max:255',
-            'tanggal'   => 'required|date',
-            'lokasi'    => 'required|string|max:255',
-            'deskripsi' => 'required|string',
-            'status'    => 'required|in:aktif,selesai',
-            'gambar'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'judul'       => 'required|string|max:255',
+            'tanggal'     => 'required|date',
+            'lokasi'      => 'required|string|max:255',
+            'deskripsi'   => 'required|string',
+            'wa_grup'     => 'nullable|url|max:255',
+            'status'      => 'required|in:aktif,selesai',
+            'gambar'      => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         if ($request->hasFile('gambar')) {
+
             if ($kegiatan->gambar) {
                 Storage::disk('public')->delete($kegiatan->gambar);
             }
+
             $validated['gambar'] = $request->file('gambar')->store('kegiatan', 'public');
         }
 
         $kegiatan->update($validated);
 
-        return redirect()->route('admin.kegiatan.index')
+        return redirect()
+            ->route('admin.kegiatan.index')
             ->with('success', 'Agenda berhasil diperbarui!');
     }
 
@@ -94,7 +102,20 @@ class KegiatanController extends Controller
 
         $kegiatan->delete();
 
-        return redirect()->route('admin.kegiatan.index')
+        return redirect()
+            ->route('admin.kegiatan.index')
             ->with('success', 'Agenda berhasil dihapus.');
+    }
+
+    public function exportPesertaPdf(Kegiatan $kegiatan)
+    {
+        $peserta = $kegiatan->pendaftaran()->latest()->get();
+
+        $pdf = Pdf::loadView('admin.kegiatan.peserta-pdf', compact('kegiatan', 'peserta'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download(
+            'absensi-' . \Illuminate\Support\Str::slug($kegiatan->judul) . '-' . now()->format('Ymd') . '.pdf'
+        );
     }
 }

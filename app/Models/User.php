@@ -46,6 +46,12 @@ class User extends Authenticatable
         return $this->hasMany(Laporan::class);
     }
 
+    /*relasi notifikasi*/
+    public function notifikasis()
+    {
+         return $this->hasMany(Notifikasi::class);
+    }
+
     /**
      * Cek role admin
      */

@@ -929,7 +929,7 @@
 {{-- NAV --}}
 <nav id="main-nav">
     <a href="/" class="nav-brand">
-        <div class="nav-logo">S</div>
+        <img src="{{ asset('images/logo.JPG') }}" alt="Logo" style="width:38px;height:38px;border-radius:10px;object-fit:cover;">
         <span class="nav-name">
             Selendang Puan
             <small>Dharma Ayu</small>

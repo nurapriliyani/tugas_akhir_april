@@ -12,6 +12,7 @@ class Kegiatan extends Model
         'lokasi',
         'deskripsi',
         'gambar',
-        'status'
+        'wa_grup',
+        'status',
     ];
 }

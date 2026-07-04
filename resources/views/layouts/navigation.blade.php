@@ -4,9 +4,13 @@
         <div class="flex justify-between h-16">
             <div class="flex">
                 <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                <div class="shrink-0 flex items-center gap-3">
+                    <a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('dashboard') }}" class="flex items-center gap-3">
+                        <x-application-logo class="h-10 w-10 rounded-lg object-cover shadow-sm ring-1 ring-gray-200" />
+                        <span class="hidden sm:flex flex-col leading-tight">
+                            <span class="text-sm font-semibold text-gray-800">Selendang Puan</span>
+                            <span class="text-[10px] text-gray-400 tracking-wide">Dharma Ayu</span>
+                        </span>
                     </a>
                 </div>
 
